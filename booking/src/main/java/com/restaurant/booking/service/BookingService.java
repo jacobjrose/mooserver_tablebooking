@@ -33,7 +33,10 @@ public class BookingService {
 	}
 
 	public List<Booking> getAllBooking(LocalDateTime date) {
-
+		if(date ==null) {
+			//Use Current Date if no date is passed in the Request . 
+			date =  LocalDateTime.now();
+		}
 		List<com.restaurant.booking.entity.Booking> bookings = BookingDao.getInstance().getAllReservations(date);
 
 		List<Booking> bookingList = bookings.stream().map(p -> new Booking(String.valueOf(p.getId()), p.getName(),

@@ -32,7 +32,7 @@ public class RestaurnatApi {
 			@ApiResponse(code = "200", message = "unexpected error") })
 	public Response bookTable(@Valid BookingRequest body, @HeaderParam("Request-Id") String requestId) {
 		BookingService.getInstance().addBooking(body.getRequest());
-		return Response.ok().entity("Dooked.. !").build();
+		return Response.ok().entity("Booked.. !").build();
 	}
 
 	@GET
@@ -48,8 +48,8 @@ public class RestaurnatApi {
 
 			bookingListResponse.setResponse(BookingService.getInstance().getAllBooking(date));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			//TODO remove tryCatch and implement exception Mapper
 		}
 
 		return Response.ok().entity(bookingListResponse).build();

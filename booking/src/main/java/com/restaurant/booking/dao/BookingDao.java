@@ -54,7 +54,8 @@ public class BookingDao {
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
         Date toDate = calendar.getTime();
-
+        
+//FIXME Do the filtering Add Criteria to filter the data for the date provided
         
         
 		try (Session session = DatabaseUtiil.getSessionFactory().openSession()) {
