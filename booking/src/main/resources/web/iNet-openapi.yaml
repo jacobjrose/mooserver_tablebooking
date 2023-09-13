@@ -1,0 +1,562 @@
+
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: i-Net - JSN
+  description: API 3.0 specification for the the application
+  termsOfService: inetConnexion.com
+  contact:
+    name: Jacob J Rose
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: 'http://localhost:8082/api'
+  
+paths:
+  '/profile/currentprofile':
+    get:
+      description: returns the details of the user with the given profileid
+      operationId: getCurrentProfile
+      parameters:
+        - $ref: '#/components/parameters/Request-Id'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Accept-Language'
+        - $ref: '#/components/parameters/App-Name'
+        - $ref: '#/components/parameters/App-Version'
+        - $ref: '#/components/parameters/Api-Version'
+        - name: detailed
+          in: query
+          description: fullData
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Profile of the User with profile ID 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+
+    post:
+      description: Update the profile detils for the given Profile ID
+      operationId: updateProfile
+      parameters:
+        - $ref: '#/components/parameters/Request-Id'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Accept-Language'
+        - $ref: '#/components/parameters/App-Name'
+        - $ref: '#/components/parameters/App-Version'
+        - $ref: '#/components/parameters/Api-Version'
+
+      requestBody:
+        description: description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '201':
+          description: Success Status (Created)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'                
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'                
+      
+components:
+  parameters:
+    Accept-Language:
+      in: header
+      name: Accept-Language
+      description: .
+      required: false
+      schema:
+        type: string
+    Content-Type:
+      in: header
+      name: Content-Type
+      description: .
+      required: true
+      schema:
+        type: string
+        default: JSON
+    Request-Id:
+      description: .
+      name: Request-Id
+      in: header
+      required: false
+      schema:
+        type: string
+    App-Name:
+      description: .
+      name: App-Name
+      in: header
+      required: false
+      schema:
+        type: string
+    App-Version:
+      description: .
+      name: App-Version
+      in: header
+      required: false
+      schema:
+        type: string
+    Api-Version:
+      description: .
+      name: Api-Version
+      in: header
+      required: false
+      schema:
+        type: string
+    lastCall:
+      in: query
+      name: lastCall
+      description: |
+        API request level Format: yyyy-MM-dd''T''HH:mm:ssZ'
+      required: false
+      schema:
+        type: string
+        format: date-time
+    Authorization:
+      description: .
+      name: authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    offset:
+      in: query
+      name: offset
+      description: offset for pagination (e.g. start at 40)
+      required: false
+      schema:
+        type: integer
+    limit:
+      in: query
+      name: limit
+      description: limit for pagination (e.g. 20 at a time)
+      required: false
+      schema:
+        type: integer
+    countrycode:
+      description: .
+      name: countrycode
+      in: query
+      required: false
+      schema:
+        type: string
+
+    matchingText:
+      description: .
+      name: matchingText
+      in: query
+      required: false
+      schema:
+        type: string
+      
+  schemas:
+
+    BaseResponse:
+      description: >-
+        The base response describes the shared elements of any response from an
+        API.
+      discriminator:
+        propertyName: type
+      properties:
+        type:
+          type: string
+          description: >-
+            This is the name of the response object. e.g. .  This is so we know
+            which type of response it is
+        status:
+          description: to provide status of business transaction
+          type: string
+          enum:
+            - SUCCESS
+            - WARN
+            - ERROR            
+            - FATAL            
+        delta:
+          type: boolean
+          description: >-
+            Default is false, meaning the caller needs to take the response as
+            complete data and not delta.
+          default: false
+        deltaRemovedItems:
+          type: array
+          description: >-
+            “If delta=true, optional list of items that have been removed since
+            the last time the API was called and should be purged from the
+            app/local storage.”
+          items:
+            $ref: '#/components/schemas/EntityReference'
+        pagination:
+          type: object
+          properties:
+            limit:
+              type: integer
+            offset:
+              type: integer
+            total:
+              type: integer
+              format: int64
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusMessage'
+      required:
+        - type
+        - status
+
+
+
+
+                        
+    ProfileUpdateRequest:
+      required:
+        - request
+      description: |
+        New Employment to be Added.
+      properties:
+        request:
+          $ref: '#/components/schemas/CandidateProfile' 
+          
+
+                             
+    EntityReference:
+      description: Identifies an entity instance by Type and unique ID
+      properties:
+        type:
+          description: Type of the entity
+          type: string
+        id:
+          description: Unique Id of the entity.
+          type: string
+          
+    StatusMessage:
+      required:
+        - type
+        - code
+        - message
+      properties:
+        type:
+          type: string
+          enum:
+            - INFO          
+            - WARN          
+            - ERROR
+            - FATAL            
+        userAction:
+          type: string
+          enum:
+            - ALERT          
+            - CONFIRM          
+            - CONFIRM_LINK
+        message:
+          type: string            
+        code:
+          type: string
+          enum:
+            - 4020 #         
+          
+ 
+                         
+    Profile:
+      required:
+        - fName
+        - lName
+        - email
+        - profileId
+      properties:
+        profileId:
+          type: string      
+        fName:
+          type: string
+        mName:
+          type: string
+        lName:
+          type: string
+        photoUrl:
+          type: string
+        coverPhoto:
+          type: string 
+        email:
+          type: string
+        phone:
+          type: string
+        gender:
+          type: string
+        countryCode:
+          type: string
+        dob:
+          type: string
+          format: date
+        currentPosition:
+          type: string
+        profileHeadline:
+          type: string
+        profileSummary:
+          type: string                      
+        region:
+          type: string 
+        postalCode:
+          type: string 
+        location:
+          type: string 
+        industry:
+          type: string 
+        altPhone:
+          type: string 
+        altEmail:
+          type: string 
+        careerStatus:
+          type: string 
+        phoneVerified:
+          type: boolean
+        emailVerified:
+          type: boolean
+        fileName:
+          type: string 
+        fileId:
+          type: string
+
+              
+
+    
+
+    AppConfig:
+      properties:
+        sysConfig:
+          $ref: '#/components/schemas/SystemConfig'        
+        jobCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        jobFunctions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        jobIndustries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        jobQualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        jobSeniorityLevels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        jobTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        jobSkills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Country'    
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Language'             
+        educationInstitutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/EducationInstitution' 
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        specializations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'  
+        degrees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'          
+        designations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Config'
+        perks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Perk'            
+        locationInfo:
+          $ref: '#/components/schemas/LocationInfo'
+
+
+            
+    Country:
+      properties:
+        name:
+          type: string      
+        alpha2Code:
+          type: string
+        alpha3Code:
+          type: string
+        flag:
+          type: string          
+        callingCode:
+          type: string
+        capital:
+          type: string
+        topLevelDomain:
+          type: string                      
+        currencyCode:
+          type: string
+        currencyName:
+          type: string
+        currencySymbol:
+          type: string
+          
+    EducationInstitution:
+      properties:
+        institutionName:
+          type: string      
+        countryCode:
+          type: string
+        countryName:
+          type: string
+        state:
+          type: string          
+        website:
+          type: string 
+
+    LocationInfo:
+      properties:
+        ip:
+          type: string      
+        countryCode:
+          type: string
+        countryName:
+          type: string
+        regionName:
+          type: string          
+        regionCode:
+          type: string 
+        city:
+          type: string      
+        zipCode:
+          type: string
+        timeZone:
+          type: string
+        latitude:
+          type: string          
+        longitude:
+          type: string 
+        metroCode:
+          type: string      
+        organisation:
+          type: string
+        flagUrl:
+          type: string
+        currencySymbol:
+          type: string          
+        currency:
+          type: string 
+        callingCode:
+          type: string      
+        countryCapital:
+          type: string
+        countryCodeISO3:
+          type: string
+        inEU:
+          type: string          
+        utcOffset:
+          type: string 
+
+          
+    Language:
+      properties:
+        languageName:
+          type: string      
+        languageCode:
+          type: string
+    Perk:
+      properties:
+        perkName:
+          type: string
+        displaytext:
+          type: string                  
+        imageUrl:
+          type: string
+                
+    MenuItem:
+      properties:
+        menuId:
+          type: string      
+        label:
+          type: string
+        path:
+          type: string      
+        parentId:
+          type: string
+        icon:
+          type: string
+                    
+    Menu:
+      properties:
+        leftMenu:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'          
+        topMenu:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+        bottomMenu:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'             
+                              
+    UserConfig:
+      properties:
+        leftMenu:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'           
+        topMenu:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem' 
+        bottomMenu:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'     
+
+

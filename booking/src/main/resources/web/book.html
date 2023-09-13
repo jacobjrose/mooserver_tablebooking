@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Book a Table</title>
+	<script>
+
+		function bookTable() {
+		
+			const tableNumber = document.getElementById('tableNumber').value;
+			const customerName = document.getElementById('customerName').value;
+
+			const email = document.getElementById('email').value;
+			const date = document.getElementById('date').value;
+			fetch('/restaurnat/addNewBooking', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					tableSize: parseInt(tableNumber),
+					name: customerName,
+					email: email,
+					dateTime: dateTime,
+				})
+			})
+				.then(response => {
+					if (response.ok) {
+						alert('Table booked successfully!');
+					} else {
+						alert('Error booking table. Please try again.');
+					}
+				});
+					
+		}
+
+	</script>
+</head>
+
+<body>
+	<h1>Book a Table</h1>
+	<form action="/book" method="post">
+		<label for="tableNumber">Number of People:</label>
+
+		<input type="number" id="tableNumber" name="tableNumber" min="2" required><br>
+
+
+
+		<label for="customerName">Your Name:</label>
+		<input type="text" id="customerName" name="customerName" required><br>
+
+		<label for="email">Your email:</label>
+		<input type="text" id="email" name="email" required><br>
+
+
+		<label for="date">Date of Booking:</label>
+		<input type="datetime-local" id="date" name="dare" required><br>
+
+		<button onclick="bookTable()">Book</button>
+	</form>
+</body>
+
+</html>
